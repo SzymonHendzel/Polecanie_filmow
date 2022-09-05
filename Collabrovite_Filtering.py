@@ -3,7 +3,7 @@ import numpy as np
 import streamlit as st
 import json
 
-
+#Pobranie i ekstrakcja danych z bazy filmów
 movies = pd.read_csv('../Aplikacja_polecania/Movies/movies.csv')
 ratings = pd.read_csv('../Aplikacja_polecania/Movies/ratings.csv')
 movies['year'] = movies['title'].str.extract('(\(\d\d\d\d\))',expand = False)
@@ -12,9 +12,12 @@ movies['title'] = movies['title'].str.replace('(\(\d\d\d\d\))', '')
 movies['title'] = movies['title'].apply(lambda x: x.strip())
 movies['genres'] = movies['genres'].str.split(pat='|')
 movies_for_user_list = movies
+#koniec pobierania i ekstrakcji danych z bazy filmów
+
 with open('../Aplikacja_polecania\sample.json') as f:
     watched_films = json.load(f)
 form = st.form("my_form")
+user_name = form.text_input('Wpisz nazwę użytkownika', 'user')
 tittle = form.selectbox(
       'Wybierz film który oglądałeś', movies_for_user_list.title)
 grade = form.number_input('Wpisz ocenę filmu',min_value = 0,max_value = 10)
@@ -23,21 +26,23 @@ grade = form.number_input('Wpisz ocenę filmu',min_value = 0,max_value = 10)
 sumbit = form.form_submit_button("Wpisz ocene")
 
 if sumbit:
-      if tittle not in watched_films :
-        watched_films[tittle] = grade
+      if user_name not in watched_films :
+        dict_of_user = {user_name:{tittle:grade}}
+        watched_films.update(dict_of_user)
       else:
         st.write("You changed your grade")
-        watched_films[tittle] = grade
+        watched_films[user_name][tittle] = grade
 with open('../Aplikacja_polecania/sample.json', "w") as f:
         json.dump(watched_films, f)
-user_movies = pd.DataFrame(watched_films.items(),columns = ['Title','Grade'])    
+st.write(f'Filmy użytkownika {user_name}')
+user_movies = pd.DataFrame(watched_films[user_name].items(),columns = ['Title','Grade'])    
 user_movies.set_index(keys='Title',drop=True,inplace=True)
 st.dataframe(user_movies)
 #watched_films mogę połączyć z movies przy pomocy innerjoina na podstawie tytułów bo one są unikalne.
 
 
 
-movies_hot_encode = pd.concat([             #Hot encode wykorzysytując funkcję biblioteki pandas concat oraz funkcji applay
+movies_hot_encode = pd.concat([         #Hot encode wykorzysytując funkcję biblioteki pandas concat oraz funkcji applay
         movies.drop("genres", axis = 1),
         movies.genres.apply(lambda x: pd.Series(1, x)).fillna(0)
     ], axis=1, )
