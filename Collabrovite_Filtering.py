@@ -2,9 +2,11 @@ import pandas as pd
 import numpy as np
 import streamlit as st
 import json
+from pathlib import Path
 
+mypath = Path().absolute()
 #Pobranie i ekstrakcja danych z bazy filmów
-movies = pd.read_csv('../Polecanie_filmow/Movies/movies.csv')
+movies = pd.read_csv(f'{mypath}/Movies/movies.csv')
 movies['year'] = movies['title'].str.extract('(\(\d\d\d\d\))',expand = False)
 movies['year'] = movies['year'].str.extract('(\d\d\d\d)',expand=False)
 movies['title'] = movies['title'].str.replace('(\(\d\d\d\d\))', '')
@@ -14,7 +16,7 @@ movies_for_user_list = movies
 #koniec pobierania i ekstrakcji danych z bazy filmów
 
 #pobieranie danych od użytkownika oraz wpisywanie ich do pliku json
-with open('../Polecanie_filmow\sample.json') as f:
+with open(f'{mypath}\sample.json') as f:
     watched_films = json.load(f)
 form = st.form("my_form")
 user_name = form.text_input('Wpisz nazwę użytkownika', 'user')
@@ -33,7 +35,7 @@ if sumbit:
         else:
           st.write("You changed your grade")
           watched_films[user_name][tittle] = grade
-with open('../Polecanie_filmow/sample.json', "w") as f:
+with open(f'{mypath}/sample.json', "w") as f:
         json.dump(watched_films, f)
 st.write(f'Filmy użytkownika {user_name}')
 user_movies = pd.DataFrame(watched_films[user_name].items(),columns = ['Title','Grade'])    
@@ -60,4 +62,5 @@ un_seen_films = movies_hot_encode.loc[idx2,:]
 ratings_un_seen_films = genre_ratings_normalize*un_seen_films
 ratings_un_seen_films['Avarege']=ratings_un_seen_films.sum(axis=1)
 top20 = ratings_un_seen_films.loc[:,'Avarege'].sort_values(ascending = False).iloc[0:20]#wybór 20 najlepszych filmów do polecenia 
+st.write("20 polecanych filmów")
 st.dataframe(movies.loc[movies['title'].isin(top20.index),['title','genres']].set_index('title'))
