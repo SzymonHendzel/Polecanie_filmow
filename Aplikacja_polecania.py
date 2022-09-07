@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 
 mypath = Path().absolute()
+user_json_file = Path('sample.json')
+movies_dataset_path = Path('movies')
 #Pobranie i ekstrakcja danych z bazy filmów
 movies = pd.read_csv(f'{mypath}/Movies/movies.csv')
 movies['year'] = movies['title'].str.extract('(\(\d\d\d\d\))',expand = False)
@@ -16,7 +18,7 @@ movies_for_user_list = movies
 #koniec pobierania i ekstrakcji danych z bazy filmów
 
 #pobieranie danych od użytkownika oraz wpisywanie ich do pliku json
-with open(f'{mypath}\sample.json') as f:
+with open(user_json_file) as f:
     watched_films = json.load(f)
 form = st.form("my_form")
 user_name = form.text_input('Wpisz nazwę użytkownika', 'user')
@@ -35,7 +37,7 @@ if sumbit:
         else:
           st.write("You changed your grade")
           watched_films[user_name][tittle] = grade
-with open(f'{mypath}/sample.json', "w") as f:
+with open(user_json_file, "w") as f:
         json.dump(watched_films, f)
 st.write(f'Filmy użytkownika {user_name}')
 user_movies = pd.DataFrame(watched_films[user_name].items(),columns = ['Title','Grade'])    
